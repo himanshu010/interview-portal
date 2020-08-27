@@ -29,10 +29,7 @@ app.use(
   })
 );
 app.get("/", (req, res) => {
-  res.render("index", {
-    title: "weather app 1",
-    name: "himanshu aswal",
-  });
+  res.render("index");
 });
 
 app.use("/userData", userController);

@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 
-const { MongoClient, ObjectID } = require("mongodb");
+const { MongoClient } = require("mongodb");
 const connectionURL = "mongodb://localhost:27017";
 const databaseName = "portal";
 
@@ -13,7 +13,6 @@ router.get("/add", (req, res) => {
     if (err) {
       return console.log("Can't find user Model");
     }
-    // console.log(docs);
     res.render("addinterview", { data: docs });
   });
 });
@@ -63,52 +62,8 @@ var checkTimeError = function (body) {
         }
       }
     });
-    // callback(cnt);
   });
 };
-
-function findRecord(name, callback) {
-  userModel.find({ username: name }, (err, record) => {
-    callback(record);
-  });
-}
-
-var cnt = 0;
-// function checkTimeError(body, callback) {
-//   userModel.find((err, docs) => {
-//     if (err) {
-//       return console.log("Can't find user Model");
-//     }
-//     var x;
-
-//     for (x of docs) {
-//       var name = x.username;
-//       if (body[name]) {
-//         console.log(name);
-//         var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
-//         var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
-//         userModel.find({ username: name }, (err, record) => {
-//           var y;
-//           for (y of record) {
-//             var z;
-//             for (z of y.schedule) {
-//               console.log(z.start);
-//               if (
-//                 (startTime > z.start && startTime < z.end) ||
-//                 (endTime > z.start && endTime < z.end) ||
-//                 (startTime < z.start && endTime > z.end)
-//               ) {
-//                 cnt++;
-//                 callback(cnt);
-//               }
-//             }
-//           }
-//         });
-//       }
-//     }
-//   });
-//   callback(cnt);
-// }
 
 function insert(body) {
   MongoClient.connect(
@@ -133,7 +88,6 @@ function insert(body) {
       }
 
       var x;
-      // console.log(userNames);
       for (x of userNames) {
         const db = client.db(databaseName);
         db.collection("userdatas").update(
@@ -173,12 +127,10 @@ function find_record(body, callback) {
         userNames.push("vishal");
       }
       if (body.himanshu) {
-        // console.log("aaa1");
         userNames.push("himanshu");
       }
 
       var x;
-      // console.log(userNames);
       for (x of userNames) {
         const db = client.db(databaseName);
         var cnt = 0;
@@ -188,8 +140,6 @@ function find_record(body, callback) {
             var x, y, z;
             for (x of record) {
               for (y of x.schedule) {
-                // console.log(y);
-
                 if (
                   (startTime > y.start && startTime < y.end) ||
                   (endTime > y.start && endTime < y.end) ||
@@ -198,7 +148,6 @@ function find_record(body, callback) {
                   cnt++;
                 }
               }
-              // console.log(x.schedule[0]);
             }
             if (cnt != 0) {
               callback(false);
@@ -232,7 +181,6 @@ function delete_interview(body) {
       }
 
       var x;
-      // console.log(userNames);
       for (x of userNames) {
         const db = client.db(databaseName);
         db.collection("userdatas").update(
@@ -291,6 +239,7 @@ router.get("/adding", (req, res) => {
   //     }
   //   }
   // });
+
   checkTimeError(req.query)
     .then((result) => {
       res.render("interviewplaced");
@@ -300,26 +249,12 @@ router.get("/adding", (req, res) => {
       res.render("error");
     });
 });
-// router.post("/add", (req, res) => {
-//   flag(req.body, (cnt) => {
-//     console.log(cnt);
-//     if (cnt != 0) {
-//       res.send("Error");
-//     }
-//   });
-
-//   // var name;
-//   // for(name of )
-//   // console.log(req.body.achint);
-//   res.render("Interviewplaced");
-// });
 
 router.get("/list", (req, res) => {
   userModel.find((err, docs) => {
     if (err) {
       return console.log("Can't find user Model");
     }
-    // console.log(docs);
     var arr = [];
 
     var x, y;
@@ -358,10 +293,6 @@ router.get("/list", (req, res) => {
 
     res.render("list", {
       data: arr,
-      // starth: starth,
-      // startm: startm,
-      // endh: endh,
-      // endm: endm,
     });
   });
 });
