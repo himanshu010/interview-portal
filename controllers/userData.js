@@ -18,6 +18,55 @@ router.get("/add", (req, res) => {
   });
 });
 
+var checkTimeError = function (body) {
+  return new Promise((resolve, reject) => {
+    userModel.find((err, docs) => {
+      if (err) {
+        return console.log("Can't find user Model");
+      }
+      var x;
+      var i = 0,
+        j = 0,
+        k = 0;
+      for (x of docs) {
+        i++;
+        var name = x.username;
+        if (body[name]) {
+          console.log(name);
+          var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
+          var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
+          userModel.find({ username: name }, (err, record) => {
+            var y;
+
+            for (y of record) {
+              j++;
+              var z;
+              for (z of y.schedule) {
+                k++;
+                console.log(z.start);
+                if (
+                  (startTime >= z.start && startTime <= z.end) ||
+                  (endTime >= z.start && endTime <= z.end) ||
+                  (startTime <= z.start && endTime >= z.end)
+                ) {
+                  reject("can't set");
+                } else if (
+                  i == docs.length &&
+                  j == record.length &&
+                  k == y.schedule.length
+                ) {
+                  resolve("set");
+                }
+              }
+            }
+          });
+        }
+      }
+    });
+    // callback(cnt);
+  });
+};
+
 function findRecord(name, callback) {
   userModel.find({ username: name }, (err, record) => {
     callback(record);
@@ -25,41 +74,41 @@ function findRecord(name, callback) {
 }
 
 var cnt = 0;
-function checkTimeError(body, callback) {
-  userModel.find((err, docs) => {
-    if (err) {
-      return console.log("Can't find user Model");
-    }
-    var x;
+// function checkTimeError(body, callback) {
+//   userModel.find((err, docs) => {
+//     if (err) {
+//       return console.log("Can't find user Model");
+//     }
+//     var x;
 
-    for (x of docs) {
-      var name = x.username;
-      if (body[name]) {
-        console.log(name);
-        var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
-        var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
-        userModel.find({ username: name }, (err, record) => {
-          var y;
-          for (y of record) {
-            var z;
-            for (z of y.schedule) {
-              console.log(z.start);
-              if (
-                (startTime > z.start && startTime < z.end) ||
-                (endTime > z.start && endTime < z.end) ||
-                (startTime < z.start && endTime > z.end)
-              ) {
-                cnt++;
-                callback(cnt);
-              }
-            }
-          }
-        });
-      }
-    }
-  });
-  callback(cnt);
-}
+//     for (x of docs) {
+//       var name = x.username;
+//       if (body[name]) {
+//         console.log(name);
+//         var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
+//         var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
+//         userModel.find({ username: name }, (err, record) => {
+//           var y;
+//           for (y of record) {
+//             var z;
+//             for (z of y.schedule) {
+//               console.log(z.start);
+//               if (
+//                 (startTime > z.start && startTime < z.end) ||
+//                 (endTime > z.start && endTime < z.end) ||
+//                 (startTime < z.start && endTime > z.end)
+//               ) {
+//                 cnt++;
+//                 callback(cnt);
+//               }
+//             }
+//           }
+//         });
+//       }
+//     }
+//   });
+//   callback(cnt);
+// }
 
 function insert(body) {
   MongoClient.connect(
@@ -214,34 +263,42 @@ router.get("/adding", (req, res) => {
     return res.render("lessthantwo");
   }
 
-  find_record(req.query, (val) => {
-    console.log(val);
-    if (val) {
-      try {
-        res.render("interviewplaced");
-        if (insertion_flag == 0) {
-          insert(req.query);
-        }
-      } catch {
-        console.log("already placed");
-      }
+  // find_record(req.query, (val) => {
+  //   console.log(val);
+  //   if (val) {
+  //     try {
+  //       res.render("interviewplaced");
+  //       if (insertion_flag == 0) {
+  //         insert(req.query);
+  //       }
+  //     } catch {
+  //       console.log("already placed");
+  //     }
 
-      insertion_flag++;
-    } else {
-      try {
-        res.render("error");
-      } catch (e) {
-        console.log("error in rendering");
-        if (delete_record == 0 && insertion_flag != 0) {
-          delete_record++;
-          delete_interview(req.query);
-          console.log("Deleted");
-        } else {
-          console.log("already deleted or not inserted earlier");
-        }
-      }
-    }
-  });
+  //     insertion_flag++;
+  //   } else {
+  //     try {
+  //       res.render("error");
+  //     } catch (e) {
+  //       console.log("error in rendering");
+  //       if (delete_record == 0 && insertion_flag != 0) {
+  //         delete_record++;
+  //         delete_interview(req.query);
+  //         console.log("Deleted");
+  //       } else {
+  //         console.log("already deleted or not inserted earlier");
+  //       }
+  //     }
+  //   }
+  // });
+  checkTimeError(req.query)
+    .then((result) => {
+      res.render("interviewplaced");
+      insert(req.query);
+    })
+    .catch((err) => {
+      res.render("error");
+    });
 });
 // router.post("/add", (req, res) => {
 //   flag(req.body, (cnt) => {
