@@ -307,13 +307,44 @@ router.get("/list", (req, res) => {
   });
 });
 
-// var update_time = () => {};
+var update_time = (body, names) => {
+  MongoClient.connect(
+    connectionURL,
+    { useNewUrlParser: true },
+    (error, client) => {
+      if (error) {
+        console.log("Unable to connect to Mongo");
+        return;
+      }
+
+      const db = client.db(databaseName);
+      // db.collection("userdatas").update({ id: body.id });
+      // db.collection("userdatas")
+      //   .find({
+      //     schedule: { $elemMatch: { id: body.id } },
+      //   })
+      //   .toArray((error, result) => {
+      //     console.log(result);
+      //   });
+      // items.$.price
+      var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
+      var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
+      console.log(startTime, endTime);
+
+      db.collection("userdatas").update(
+        { "schedule.id": body.id },
+        { $set: { "schedule.start": startTime, "schedule.end": endTime } }
+      );
+    }
+  );
+};
 
 router.get("/updating", (req, res) => {
   res.send(req.query);
   find_users_to_update(req.query)
     .then((result) => {
       // console.log(result);
+      var names = result;
       var obj = {};
       for (var x of result) {
         obj[x] = true;
@@ -323,11 +354,14 @@ router.get("/updating", (req, res) => {
       obj.startm = req.query.startm;
       obj.endh = req.query.endh;
       obj.endm = req.query.endm;
-      // console.log(obj);
+      obj.id = req.query.id;
 
       checkTimeError(obj)
         .then((result) => {
           console.log(result);
+          console.log(names, "llll");
+          //function to update
+          update_time(req.query, names);
         })
         .catch((err) => {
           console.log(err);
