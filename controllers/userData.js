@@ -17,6 +17,10 @@ router.get("/add", (req, res) => {
   });
 });
 
+router.get("/update", (req, res) => {
+  res.render("updatetime");
+});
+
 var checkTimeError = function (body) {
   return new Promise((resolve, reject) => {
     userModel.find((err, docs) => {
@@ -63,6 +67,28 @@ var checkTimeError = function (body) {
   });
 };
 
+var find_users_to_update = function (body) {
+  return new Promise((resolve, reject) => {
+    userModel.find((err, docs) => {
+      if (err) {
+        reject("Connection to database failed");
+      } else {
+        var users_to_interview = [];
+        // console.log(docs);
+        for (var x of docs) {
+          for (var y of x.schedule) {
+            if (y.id == body.id) {
+              users_to_interview.push(x.username);
+              break;
+            }
+          }
+        }
+        resolve(users_to_interview);
+      }
+    });
+  });
+};
+
 function insert(body) {
   MongoClient.connect(
     connectionURL,
@@ -93,8 +119,6 @@ function insert(body) {
               $push: {
                 schedule: {
                   $each: [{ id: body.id, start: startTime, end: endTime }],
-                  $sort: { score: -1 },
-                  $slice: 3,
                 },
               },
             }
@@ -281,6 +305,37 @@ router.get("/list", (req, res) => {
       data: arr,
     });
   });
+});
+
+// var update_time = () => {};
+
+router.get("/updating", (req, res) => {
+  res.send(req.query);
+  find_users_to_update(req.query)
+    .then((result) => {
+      // console.log(result);
+      var obj = {};
+      for (var x of result) {
+        obj[x] = true;
+      }
+
+      obj.starth = req.query.starth;
+      obj.startm = req.query.startm;
+      obj.endh = req.query.endh;
+      obj.endm = req.query.endm;
+      // console.log(obj);
+
+      checkTimeError(obj)
+        .then((result) => {
+          console.log(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 module.exports = router;
