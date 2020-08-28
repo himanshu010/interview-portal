@@ -72,34 +72,35 @@ function insert(body) {
         console.log("Unable to connect to Mongo");
         return;
       }
-      var userNames = [];
       var startTime = parseInt(body.starth) * 60 + parseInt(body.startm);
       var endTime = parseInt(body.endh * 60) + parseInt(body.endm);
-      if (body.achint) {
-        userNames.push("achint");
-      }
-      if (body.vishal) {
-        userNames.push("vishal");
-      }
-      if (body.himanshu) {
-        userNames.push("himanshu");
-      }
 
-      for (var x of userNames) {
-        const db = client.db(databaseName);
-        db.collection("userdatas").update(
-          { username: x },
-          {
-            $push: {
-              schedule: {
-                $each: [{ id: body.id, start: startTime, end: endTime }],
-                $sort: { score: -1 },
-                $slice: 3,
-              },
-            },
+      userModel.find((err, docs) => {
+        if (err) {
+          return console.log("Connection to database not eshtablished");
+        }
+        var userNames = [];
+        for (var x of docs) {
+          if (body[x.username]) {
+            userNames.push(x.username);
           }
-        );
-      }
+        }
+        for (var x of userNames) {
+          const db = client.db(databaseName);
+          db.collection("userdatas").update(
+            { username: x },
+            {
+              $push: {
+                schedule: {
+                  $each: [{ id: body.id, start: startTime, end: endTime }],
+                  $sort: { score: -1 },
+                  $slice: 3,
+                },
+              },
+            }
+          );
+        }
+      });
     }
   );
 }
